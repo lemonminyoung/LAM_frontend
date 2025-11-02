@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "student_id": "2019123456",
+      "password": "test1234",
+      "name": "홍길동",
+      "token": "mock-token-2019123456"
+    },
+    {
+      "id": 2,
+      "student_id": "2020654321",
+      "password": "password",
+      "name": "김철수",
+      "token": "mock-token-2020654321"
+    }
+  ]
+}
