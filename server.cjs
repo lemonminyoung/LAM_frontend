@@ -196,23 +196,30 @@ app.post('/state', (req, res) => {
   executionWebState.data = data;
 
   // 로그인 결과 처리
-  if (data.loginSuccess !== undefined) {
-    const token = currentCommand?.token;
+  if (data.loginSuccess !== undefined && currentCommand) {
+    const token = currentCommand.token;
+    const commandType = currentCommand.type;
 
-    if (token && loginSessions.has(token)) {
+    // 현재 명령이 로그인 타입일 때만 처리
+    if (commandType === 'login' && token && loginSessions.has(token)) {
       const session = loginSessions.get(token);
 
-      if (data.loginSuccess) {
-        session.status = 'success';
-        console.log(`[로그인 완료] token=${token}`);
+      // pending 상태일 때만 업데이트 (중복 처리 방지)
+      if (session.status === 'pending') {
+        if (data.loginSuccess) {
+          session.status = 'success';
+          console.log(`[로그인 완료] token=${token}`);
+        } else {
+          session.status = 'failed';
+          console.log(`[로그인 실패] token=${token}`);
+        }
       } else {
-        session.status = 'failed';
-        console.log(`[로그인 실패] token=${token}`);
+        console.log(`[경고] 이미 처리된 명령 무시: token=${token}, status=${session.status}`);
       }
-    }
 
-    // 현재 명령 완료
-    currentCommand = null;
+      // 현재 명령 완료
+      currentCommand = null;
+    }
   }
 
   res.status(200).json({

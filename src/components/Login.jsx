@@ -78,8 +78,7 @@ function Login({ onLoginPending, onLoginImmediate, onLoginError }) {
       <div className="test-accounts">
         <p>테스트 계정 (Mock 모드):</p>
         <ul>
-          <li>2019123456 / test1234</li>
-          <li>2020654321 / password</li>
+          <li>2022112456 / a1637528!</li>
         </ul>
       </div>
     </div>
