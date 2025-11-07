@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { loginApi } from "../utils/api";
 
-function Login({ onLoginPending, onLoginImmediate, onLoginError }) {
+function Login({ onLoginSuccess, onLoginError }) {
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,6 +15,7 @@ function Login({ onLoginPending, onLoginImmediate, onLoginError }) {
     }
 
     setError("");
+    setLoading(true);
 
     try {
       // API 호출 - POST /login
@@ -21,27 +23,27 @@ function Login({ onLoginPending, onLoginImmediate, onLoginError }) {
 
       console.log("로그인 API 응답:", data);
 
-      if (data.status === "pending") {
-        // 로그인 진행 중 - 폴링 시작
-        console.log("로그인 요청 접수됨, 폴링 시작");
-        onLoginPending(data.token);
-      } else if (data.status === "success" || data.success) {
-        // 즉시 로그인 성공 (폴링 없이)
-        console.log("즉시 로그인 성공");
-        onLoginImmediate({
-          studentId: studentId,
-          token: data.token,
-          name: data.name || studentId,
+      // 백엔드 응답: { ok: true, student_id: "...", message: "..." }
+      if (data.ok) {
+        // 로그인 성공 - 채팅 화면으로 전환
+        console.log("로그인 성공:", data.student_id);
+        onLoginSuccess({
+          studentId: data.student_id,
+          name: data.student_id, // 백엔드에서 name을 제공하지 않으므로 student_id 사용
         });
       }
     } catch (err) {
       console.error("로그인 오류:", err);
 
       // 로그인 실패 - 에러 화면으로 돌아감
-      onLoginError();
+      if (onLoginError) {
+        onLoginError();
+      }
 
       // 에러 메시지 표시
       setError(err.message || "로그인 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,8 +72,8 @@ function Login({ onLoginPending, onLoginImmediate, onLoginError }) {
           />
         </div>
 
-        <button type="submit" className="login-button">
-          로그인
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? "로그인 중..." : "로그인"}
         </button>
       </form>
 

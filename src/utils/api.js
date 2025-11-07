@@ -1,10 +1,11 @@
 // API 호출 유틸리티
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 /**
  * 로그인 API
  * POST /login
+ * 백엔드: FastAPI (Api.py)
  */
 export const loginApi = async (studentId, password) => {
   const response = await fetch(`${API_BASE_URL}/login`, {
@@ -20,42 +21,29 @@ export const loginApi = async (studentId, password) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || "로그인에 실패했습니다.");
+    throw new Error(error.detail || error.message || "로그인에 실패했습니다.");
   }
 
-  return await response.json();
-};
+  const data = await response.json();
 
-/**
- * 로그인 상태 확인 API (폴링용)
- * GET /login-status
- */
-export const checkLoginStatusApi = async (token) => {
-  const response = await fetch(`${API_BASE_URL}/login-status?token=${token}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || "로그인 상태 확인에 실패했습니다.");
+  // 백엔드 응답: { ok: true, student_id: "...", message: "..." }
+  if (!data.ok) {
+    throw new Error(data.message || "로그인에 실패했습니다.");
   }
 
-  return await response.json();
+  return data;
 };
 
 /**
  * 프롬프트 전송 API
  * POST /prompt
+ * 백엔드: FastAPI (Api.py)
  */
-export const sendPromptApi = async (text, token) => {
+export const sendPromptApi = async (text) => {
   const response = await fetch(`${API_BASE_URL}/prompt`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       text: text,
@@ -64,8 +52,15 @@ export const sendPromptApi = async (text, token) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || "메시지 전송에 실패했습니다.");
+    throw new Error(error.detail || error.message || "메시지 전송에 실패했습니다.");
   }
 
-  return await response.json();
+  const data = await response.json();
+
+  // 백엔드 응답: { ok: true, prompt_text: "...", message: "..." }
+  if (!data.ok) {
+    throw new Error(data.message || "메시지 전송에 실패했습니다.");
+  }
+
+  return data;
 };
